@@ -84,7 +84,7 @@ float colision(Car r, float Dinit, boolean acc) {
       float TVmaxA = (MaxSpeed - getSpeed)/ acc;
       float TVmaxB = (MaxSpeed - r.getSpeed)/ acc;
       float XVmaxA = TVmaxA*(MaxSpeed+getSpeed)/2;
-      float XVmaxB = TVmaxA*(MaxSpeed+r.getSpeed)/2;
+      float XVmaxB = TVmaxB*(MaxSpeed+r.getSpeed)/2;
       
         if(r.getSpeed()>=getSpeed()){
           return 100000;    // En gros la voiture de devant va plus vite donc on accélère jusqu'à atteindre la vitesse max et attendre un pochain évènement.
