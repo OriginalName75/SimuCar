@@ -34,8 +34,9 @@ public class Simulation {
 		int i = 0;
 
 		for (Car car : map.getCars()) {
+			
 			float a = simuCar.simIna(delta, t, car, true, map);
-
+			//System.out.println(car.getNom() + " |||| " + (a-t));
 			if (a != -1) {
 				if (min == -1) {
 					min = a;

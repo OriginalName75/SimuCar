@@ -72,14 +72,14 @@ public class Intersection extends Node {
 		return r;
 	}
 
-	public boolean checkGo(Car r, Map m, boolean in) {
+	public boolean checkGo(Car r, Map m, boolean in, Road nextRoad, float plusD) {
 		int entree = connexion(r.getPositionInitIntersection());
-		int sortie = connexion(roadToInt(r.getOnRoad()));
+		int sortie = connexion(roadToInt(nextRoad));
 		/*
 		 * 
 		 * 
 		 * 
-		 * il veut tourner à droite
+		 * il veut tourner ï¿½ droite
 		 * 
 		 * 
 		 */
@@ -109,9 +109,9 @@ public class Intersection extends Node {
 				// onregardesiprioritaire
 				if (!inters[r.getPositionInitIntersection()].asPrioriteDroite()) {
 
-					// si ps prioritaire onregarde à gauche
+					// si ps prioritaire onregarde ï¿½ gauche
 					int par = parrallele(roadToInt(r.getOnRoad()));
-					if (inters[par].asPrioriteDroite() && !obstacle(r, d / 2, in, m, par)) {
+					if (inters[par].asPrioriteDroite() && !obstacle(r, d / 2, in, m, par,plusD)) {
 						return false;
 					}
 					if (in) {
@@ -165,14 +165,14 @@ public class Intersection extends Node {
 					// onregardesiprioritaire
 					if (!inters[r.getPositionInitIntersection()].asPrioriteDroite()) {
 
-						// on regarde à droite
+						// on regarde ï¿½ droite
 
-						if (obstacle(r, d, in, m, droite(r.getPositionInitIntersection()))) {
+						if (obstacle(r, d, in, m, droite(r.getPositionInitIntersection()),plusD)) {
 
 							return false;
 						}
 						if (inters[gauche(r.getPositionInitIntersection())].asPrioriteDroite()
-								&& obstacle(r, d, in, m, gauche(r.getPositionInitIntersection()))) {
+								&& obstacle(r, d, in, m, gauche(r.getPositionInitIntersection()),plusD)) {
 
 							return false;
 						}
@@ -184,10 +184,10 @@ public class Intersection extends Node {
 						}
 						return true;
 					} else {
-						// on regarde à droite
+						// on regarde ï¿½ droite
 
 						if (inters[droite(r.getPositionInitIntersection())].asPrioriteDroite()
-								&& !obstacle(r, d, in, m, droite(r.getPositionInitIntersection()))) {
+								&& !obstacle(r, d, in, m, droite(r.getPositionInitIntersection()),plusD)) {
 
 							return false;
 						}
@@ -205,7 +205,7 @@ public class Intersection extends Node {
 				 * 
 				 * 
 				 * 
-				 * il veut aller à droite
+				 * il veut aller ï¿½ droite
 				 * 
 				 * 
 				 */
@@ -243,18 +243,18 @@ public class Intersection extends Node {
 					// onregardesiprioritaire
 					if (!inters[r.getPositionInitIntersection()].asPrioriteDroite()) {
 
-						// on regarde à droite
+						// on regarde ï¿½ droite
 
-						if (obstacle(r, 3 * d / 2, in, m, droite(r.getPositionInitIntersection()))) {
+						if (obstacle(r, 3 * d / 2, in, m, droite(r.getPositionInitIntersection()),plusD)) {
 
 							return false;
 						}
-						if (obstacle(r, 3 * d / 2, in, m, face(r.getPositionInitIntersection()))) {
+						if (obstacle(r, 3 * d / 2, in, m, face(r.getPositionInitIntersection()),plusD)) {
 
 							return false;
 						}
 						if (inters[gauche(r.getPositionInitIntersection())].asPrioriteDroite()
-								&& obstacle(r, 3 * d / 2, in, m, gauche(r.getPositionInitIntersection()))) {
+								&& obstacle(r, 3 * d / 2, in, m, gauche(r.getPositionInitIntersection()),plusD)) {
 
 							return false;
 						}
@@ -268,12 +268,12 @@ public class Intersection extends Node {
 					} else {
 
 						if (inters[droite(r.getPositionInitIntersection())].asPrioriteDroite()
-								&& !obstacle(r, 3 * d / 2, in, m, droite(r.getPositionInitIntersection()))) {
+								&& !obstacle(r, 3 * d / 2, in, m, droite(r.getPositionInitIntersection()),plusD)) {
 
 							return false;
 						}
 						if (inters[face(r.getPositionInitIntersection())].asPrioriteDroite()
-								&& !obstacle(r, 3 * d / 2, in, m, face(r.getPositionInitIntersection()))) {
+								&& !obstacle(r, 3 * d / 2, in, m, face(r.getPositionInitIntersection()),plusD)) {
 							
 							return false;
 						}
@@ -313,7 +313,7 @@ public class Intersection extends Node {
 
 	}
 
-	private boolean obstacle(Car r, float dd, boolean in, Map m, int par) {
+	private boolean obstacle(Car r, float dd, boolean in, Map m, int par, float plusD) {
 
 		Road roa = roads[par];
 		//
@@ -325,7 +325,7 @@ public class Intersection extends Node {
 			if (c.getdIntersection() == 0.0f) {
 				if (in) {
 
-					System.out.println(r.getNom() + " s'arrete cas 33" + par);
+					System.err.println(r.getNom() + " s'arrete cas 33" + par);
 					
 					r.stopTheCar();
 				}
@@ -336,12 +336,12 @@ public class Intersection extends Node {
 
 		for (Car c : roa.carsInRoad(m)) {
 
-			if (c.getSpeed() > 0 && dd / r.getMaxSpeed() >= (roa.getLength() - c.getdFromNode()) / c.getSpeed()) {
+			if (c.timeD(roa.getLength() - c.getdFromNode())<=r.timeD(plusD + dd)) {
 
 				if (in) {
 
-					System.out.println(r.getNom() + " s'arrete cas 3" + par);
-					r.stopTheCar();
+					System.err.println(r.getNom() + " s'arrete cas 3" + par);
+					c.startBreaking();
 
 				}
 				return false;
@@ -407,7 +407,8 @@ public class Intersection extends Node {
 		if (!(ccc.getPositionInitIntersection() == r.getPositionInitIntersection()
 				&& ccc.getdIntersection() - ccc.getLenght() / 2 > r.getLenght() / 2)) {
 			if (in) {
-				System.out.println(r.getNom() + " s'arrete");
+				System.err.println(r.getNom() + "Erreur  325" + ccc.getSpeed());
+				System.exit(0);
 				r.stopTheCar();
 			}
 			return false;

@@ -6,17 +6,13 @@ import car.Car;
 
 public class Node {
 	protected String nom;
-	protected float dDansintersection;
-	public float getdDansintersection() {
-		return dDansintersection;
-	}
-
+	
 	public Node(String nom) {
 		super();
 		this.nom = nom;
 		
 	}
-	public boolean checkGo(Car r, Map m, boolean in) {
+	public boolean checkGo(Car r, Map m, boolean in, Road nextRoad, float plusD) {
 		System.out.println("Erreur de construction dela map 3");
 		return false;
 	}
