@@ -17,9 +17,11 @@ public class SimuCar {
 					car.setdIntersection(car.getdIntersection() + d3[0]);
 
 					car.continueC(dt);
-
+					
 					System.out.println(car.getNom() + " | roule dans l'inteersection : "
 							+ car.getOnRoad().getStart().getNom() + " d :" + car.getdIntersection()+ " vitesse " +car.getSpeed());
+					
+					
 				} else {
 					System.out.println(car.getNom() + " | attend son tour dans l'inteersection : "
 							+ car.getOnRoad().getStart().getNom() + " d :" + car.getdIntersection()+ " vitesse " +car.getSpeed());
@@ -37,8 +39,15 @@ public class SimuCar {
 						float[] d3 = car.distanceParcourue(dt);
 						car.setdFromNode(car.getdFromNode() + d3[0]);
 						car.setSpeed(d3[1]);
-						System.out.println(car.getNom() + " | route : " + car.getOnRoad().getName() + " | distance : "
-								+ car.getdFromNode() + " vitesse " +car.getSpeed());
+						if (d3[1]==0.0f) {
+							System.out.println(car.getNom() + " | va BIENTOT accélerer : "
+									+ car.getOnRoad().getName() + " d :" + car.getdIntersection()+ " dans " +car.getCurrentReaction());
+								
+						}else {
+							System.out.println(car.getNom() + " | route : " + car.getOnRoad().getName() + " | distance : "
+									+ car.getdFromNode() + " vitesse " +car.getSpeed());
+						}
+						
 					}
 
 				} else {
@@ -52,7 +61,7 @@ public class SimuCar {
 	}
 
 	public float simIna(float delta, float t, Car c, boolean fake, Map m) {
-		float d = c.getSpeed() * ((float) (delta - t));
+		
 		
 		if (c.isInIntersection()) {
 			
@@ -100,36 +109,41 @@ public class SimuCar {
 			float minDt2 = -1;
 			String nom = "";
 			boolean fre = true;
+			Car nexcar = c;
+			boolean find=false;
+			boolean isFirst=true;
 			for (Car car : c.voituresDevant(m)) {
-
-				if (!car.isRoule() || car.getSpeed() != car.getMaxSpeed()) {
-
-					float dt2 = c.tBreaking(car, 0, true,fake);
-					float dt22 = c.tBreaking(car, 0, false,fake);
-					
-					boolean fr = true;
-					//System.out.println(c.getNom() + " " +dt2 + " " +dt22);
-					if (dt2==-1 || (dt2 > dt22 && dt22>=0)) {
-						dt2 = dt22;
-						fr = false;
+				isFirst=false;
+				if (minDt2 == -1) {
+					minDt2=car.getdFromNode()-c.getdFromNode();
+					nexcar=car;
+					find=true;
+				}else {
+					if (minDt2 > car.getdFromNode()-c.getdFromNode()) {
+						minDt2=car.getdFromNode()-c.getdFromNode();
+						nexcar=car;
+						find=true;
 					}
-					
-					if (minDt2 == -1) {
-						minDt2 = dt2;
-						nom = car.getNom();
-						fre = fr;
-					} else {
-						if (minDt2 > dt2) {
-							minDt2 = dt2;
-							nom = car.getNom();
-							
-							fre = fr;
-							
-						}
-					}
-					
 				}
+				
+				
 
+			}
+			if (find && (!nexcar.isRoule() || nexcar.getSpeed() != nexcar.getMaxSpeed())) {
+				
+				float dt2 = c.tBreaking(nexcar, 0, true,fake);
+				float dt22 = c.tBreaking(nexcar, 0, false,fake);
+				
+				boolean fr = true;
+				//System.out.println(c.getNom() + " " +dt2 + " " +dt22);
+				if (dt2==-1 || (dt2 > dt22 && dt22>=0)) {
+					dt2 = dt22;
+					fr = false;
+				}
+				nom = nexcar.getNom();
+				minDt2=dt2;
+				fre=fr;
+				
 			}
 			if (minDt2 != -1) {
 				if (minDt2 == 0) {
@@ -155,16 +169,17 @@ public class SimuCar {
 			} else {
 				
 				for (Car car : c.getOnRoad().getEnd().carssInNode(m, c.getOnRoad())) {
-
+					
 					float dt2 = c.tBreaking(car, 2, true,fake);
 					float dt22 = c.tBreaking(car, 2, false,fake);
+					
 					boolean fr = true;
 					if (dt2 > dt22) {
 						dt2 = dt22;
 						fr = false;
 					}
 					if (dt2 == -1.0f) {
-						System.out.println("Cas pas sur");
+						//System.out.println(c.getNom() + " Cas pas sur");
 						
 					} else {
 						
@@ -186,36 +201,44 @@ public class SimuCar {
 						return t + dt2;
 					}
 				}
-
+				
 			}
 			
 			if (!c.isRoule()) {
+				
 				if (!fake) {
 					c.startTheCar();
 					System.out.println("La voiture " + c.getNom() + " redemare");
 				}
 				return t + 0.0000001f;
 			}
-			
-			if (c.getdFromNode() + d >= c.getOnRoad().getLength()) {
+			//System.out.println(c.getNom() + " lkjqsdlkjdsq " + c.getdFromNode() );
+			float d = c.getMaxSpeed() * ((float) (delta - t));
+			if (c.getdFromNode() + d >= c.getOnRoad().getLength() || c.getdFromNode()  >= c.getOnRoad().getLength()) {
 				
+				if (!isFirst) {
+					return -1;
+				}
 				if (!c.estArrive()) {
 					float dleft = c.getOnRoad().getLength() - c.getdFromNode() - c.dBreaking();
 					
 					
-					if (dleft>0) {
-						c.setArriver(false);
+					if (dleft>=0) {
+						
+						c.setCheck(true);
 						if (!fake) {
+							System.err.println("Err 703");
+							System.exit(0);
 							System.out.println("La voiture " + c.getNom() + " arrive à l'intersection" +c.getOnRoad().getEnd().getNom() );
 						}
 						
 						float tleft=c.timeD(dleft);
 						return t +tleft;
 						
-					}else if (!c.isArriver() && dleft<=0) {
+					}else if (c.verifyCheck() && dleft<=0 && !fake) {
 					
-						c.setArriver(true);
 						
+						c.setCheck(false);
 						
 						c.setPositionInitIntersection(c.getOnRoad().getEnd().roadToInt(c.getOnRoad()));
 						if (!(c.getOnRoad().getEnd().checkGo(c, m, false, c.getNextRoad(),c.getOnRoad().getLength() - c.getdFromNode()))) {
@@ -241,8 +264,8 @@ public class SimuCar {
 				if (!fake) {
 
 					if (c.goNext()) {
-						System.out.println("La voiture " + c.getNom() + " est arriv� � "
-								+ c.getOnRoad().getEnd().getNom() + ", � sa destination ; Element supr");
+						System.out.println("La voiture " + c.getNom() + " est arrivé � "
+								+ c.getOnRoad().getEnd().getNom() + ", à sa destination ; Element supr");
 						c.setDestroy();
 					} else {
 					
@@ -252,8 +275,11 @@ public class SimuCar {
 
 					}
 
+				}else {
+					if (c.getdFromNode() > c.getOnRoad().getLength()) {
+						return t + 0.000001f;
+					}
 				}
-				
 				return t + c.timeD(c.getOnRoad().getLength() - c.getdFromNode()) ;
 
 			} else {

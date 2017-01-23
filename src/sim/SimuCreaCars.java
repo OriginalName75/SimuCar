@@ -24,6 +24,10 @@ public class SimuCreaCars {
 		it3.add(m.getRoads().get(5));
 		Itineraire it4 = new Itineraire();
 		it4.add(m.getRoads().get(5));
+		Itineraire it5 = new Itineraire();
+		it5.add(m.getRoads().get(5));
+		Itineraire it6 = new Itineraire();
+		it6.add(m.getRoads().get(5));
 		float t2=4.7f;
 		if (deltaT >= 1.0f && t < 1.0f) {
 			if (!fake) {
@@ -46,7 +50,36 @@ public class SimuCreaCars {
 			} 
 				
 			return t2;
+		} else if (deltaT >= t2*2 && t < t2*2) {
+
+			if (!fake) {
+				addCarRoad(m.getRoads().get(4), m, "voiture 4", 11.111f, it5);
 				
+				
+				
+				
+			} 
+				
+			return t2*2;
+				
+			
+
+		} else if (deltaT >= t2*3 && t < t2*3) {
+
+			if (!fake) {
+				addCarRoad(m.getRoads().get(4), m, "voiture 5", 11.111f, it6);
+				
+				
+				
+				
+			} 
+				
+			return t2*3;
+				
+			
+
+		
+		
 			
 
 		} else {
