@@ -6,6 +6,7 @@ public class Stop extends InterToRoad {
 		return false;
 	}
 	public boolean hasToStop() {
+		
 		return true;
 	}
 	public Stop() {

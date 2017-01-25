@@ -4,18 +4,26 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import car.Car;
-import map.Map;
+import map.Carte;
 
 public class Simulation {
-	public Map map;
+	public Carte map;
 	private SimuCar simuCar;
 	private SimuCreaCars simuCreaCars;
+	
+	public SimuCreaCars getSimuCreaCars() {
+		return simuCreaCars;
+	}
+
+	public Carte getMap() {
+		return map;
+	}
 
 	public Simulation() {
 		super();
-		map = new Map();
+		map = new Carte();
 		simuCar = new SimuCar();
-		simuCreaCars = new SimuCreaCars();
+		simuCreaCars = new SimuCreaCars(map);
 	}
 
 	public void simulate(float delta) {
@@ -25,7 +33,7 @@ public class Simulation {
 
 	public void simulate(float delta, float t) {
 		
-		float min = simuCreaCars.createCars(t, delta, map, true);
+		float min = simuCreaCars.createCar(t, delta, map, true);
 		ArrayList<Integer> idMin = new ArrayList<Integer>();
 		if (min != -1) {
 			idMin.add(-1);
@@ -63,12 +71,12 @@ public class Simulation {
 		}
 		if (idMin.contains(-1)) {
 
-			simuCreaCars.createCars(t, delta, map, false);
+			simuCreaCars.createCar(t, delta, map, false);
 		}
 		i = 0;
 		for (Car car : map.getCars()) {
 			if (idMin.contains(i)) {
-
+				
 				simuCar.simIna(delta, t, car, false, map);
 
 			}

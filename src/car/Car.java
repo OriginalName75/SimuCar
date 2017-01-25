@@ -3,7 +3,7 @@ package car;
 import java.util.ArrayList;
 
 import map.Itineraire;
-import map.Map;
+import map.Carte;
 import map.Road;
 
 public class Car {
@@ -90,7 +90,8 @@ public class Car {
 	public float tBreaking(float d) {
 
 		if (speed == 0) {
-			System.err.println("Erreur 777");
+
+			System.err.println(getNom() + " Erreur 777");
 			System.exit(0);
 		}
 		float desc = 100.0f / (36.0f);
@@ -113,6 +114,7 @@ public class Car {
 		float desc = 100.0f / (36.0f);
 		return speed * t - desc * t * t / 2.0f;
 	}
+
 	public float dBreakingMAx() {
 
 		// desc*speed /desc*speed /desc = d - speed *speed/desc
@@ -131,7 +133,7 @@ public class Car {
 		// return dBreaking(tBreaking());
 	}
 
-	private float dAcc(float t) {
+	public float dAcc(float t) {
 		float acce = 100.0f / (1.4f * 36.0f);
 		// 27,7778/14*t*t/2 = d - Vo*t;
 		if (speed > 0) {
@@ -157,6 +159,7 @@ public class Car {
 			float nextspeed = speed - desc * t;
 
 			if (nextspeed <= 0) {
+				nextspeed=0;
 				float newt = speed / desc;
 				dFromNode = dFromNode + dBreaking(newt);
 				System.out.println(
@@ -164,11 +167,10 @@ public class Car {
 				stopTheCar();
 
 			} else {
-
-				System.out.println(getNom() + " FREINE | route : " + getOnRoad().getName() + " | distnce : "
-						+ getdFromNode() + " vitesse " + getSpeed());
 				dFromNode = dFromNode + dBreaking(t);
 				speed = nextspeed;
+				System.out.println(getNom() + " FREINE | route : " + getOnRoad().getName() + " | distnce : "
+						+ getdFromNode() + " vitesse " + getSpeed());
 
 			}
 
@@ -186,7 +188,7 @@ public class Car {
 		return currentReaction;
 	}
 
-	public float timeD(float d) {
+	public float timeD(float d, boolean force) {
 
 		// Cas où on freine et la voiture devant accélère
 
@@ -194,6 +196,9 @@ public class Car {
 
 			return tBreaking(d);
 		} else if (!isRoule()) {
+			if (force) {
+				return tempsParcourue(d);
+			}
 			return -1;
 
 		} else if (getSpeed() < getMaxSpeed()) {
@@ -208,10 +213,11 @@ public class Car {
 	private float colision(Car r, float Dinit, boolean acc, boolean fake) {
 		float acce = 100.0f / (1.4f * 36.0f);
 		float desc = 100.0f / (36.0f);
-
+		
 		// Cas où on freine et la voiture devant accélère
-
+		
 		if (isBreaking) {
+			
 			if (!acc) {
 				return -1;
 			}
@@ -221,14 +227,21 @@ public class Car {
 				return -1;
 
 			} else {
-
+				
 				float dbreak = speed * speed / (desc * 2);
-			
+
 				if (dbreak <= Dinit) {
-					
+
 					if (Dinit - dbreak < 1.0f) {
 						if (r.getSpeed() == 0.0f) {
-							
+							if (tempsMoyenReaction - r.getCurrentReaction()<0) {
+								if (fake) {
+									
+									System.err.println(getNom() + " Erreur kjhj ");
+									System.exit(0);
+								}
+								
+							}
 							return 0.00000001f + tempsMoyenReaction - r.getCurrentReaction();
 						}
 					}
@@ -237,6 +250,12 @@ public class Car {
 
 				float tvMax = (getMaxSpeed() - speed) / acce;
 				float delta = r.getSpeed() * r.getSpeed() - 2 * acce * (Dinit - (getSpeed() * getSpeed()) / (desc * 2));
+				if (delta<0 && fake) {
+					
+					System.err.println(getNom() + " " +r.getNom() + " err tkjrj2dsdsdsdsgfgfgfg " + " " +Dinit + " " + delta+ " " + tvMax);
+					System.exit(0);
+					
+				}
 				float t = (-r.getSpeed() + (float) Math.sqrt(delta)) / acce;
 				if (r.getSpeed() == 0) {
 					t = t - (tempsMoyenReaction - r.getCurrentReaction());
@@ -272,6 +291,7 @@ public class Car {
 
 			}
 		} else if (!isRoule()) {
+			
 			if (!acc) {
 				return -1;
 			}
@@ -283,33 +303,55 @@ public class Car {
 			}
 
 		} else if (getSpeed() < getMaxSpeed()) {
+			
 			if (acc) {
 				return -1;
 			}
 
 			if (r.isBreaking() || !r.isRoule()) {
+				
 				if (getSpeed() == 0) {
-					
-					return tempsMoyenReaction - r.getCurrentReaction() + 0.0000001f;// a
+					if (tempsMoyenReaction - getCurrentReaction()<0) {
+						if (fake) {
+							
+							System.err.println(getNom() + " Erreur kfjhj " + getCurrentReaction());
+							System.exit(0);
+						}
+						
+					}
+					return tempsMoyenReaction - getCurrentReaction() + 0.0000001f;// a
 																					// opti
 				}
-				float t = aux1(r, Dinit);
+				
+				float t = aux1(r, Dinit, fake);
+				if (getNom().equals("v 57")) {
+					System.err.println(t);
+				}
+				if (t == -1) {
+					return -1;
+				}
+				if (t<=0 && t>=-0.1f) {
+					return 0.00000001f;
+				}
 				if (t <= 0 && fake) {
-					System.err.println("Erreur 5065065fff60");
+					
+					System.err.println(getNom() + " Erreur 5065065fff60 " + t + " " +r.getNom() + " " +r.getSpeed());
 					System.exit(0);
 				}
 				return t;
 			} else if (r.getSpeed() < r.getMaxSpeed()) {
+				
 				if (getSpeed() == 0) {
 					return -1;// a opti
 				}
 				float t = frein(r, Dinit);
-				if (t==-1) {
+				if (t == -1) {
 					return -1;
 				}
 				if (t <= 0 && fake) {
-					System.err.println(getNom() +" Erreur 50650sdfsdfsdfsdfsdf6560 " + t + " " + r.getNom() + " " + Dinit);
-					
+					System.err.println(
+							getNom() + " Erreur 50650sdfsdfsdfsdfsdf6560 " + t + " " + r.getNom() + " " + Dinit);
+
 					System.exit(0);
 				}
 				return t;
@@ -319,24 +361,39 @@ public class Car {
 			}
 
 		} else {
+			
 			if (acc) {
+				
 				return -1;
 			}
 			if (r.isBreaking() || !r.isRoule()) {
-				float t = aux1(r, Dinit);
-				if (t <= 0 && fake) {
-					
-					System.err.println(getNom() + " Erreur 50650656jh0 " +t + " " + r.getNom() + " " + Dinit);
-					// System.exit(0);
-				}
 				
-				return t;
-			} else if (r.getSpeed() < r.getMaxSpeed()) {
-				float t = frein(r, Dinit);
+				float t = aux1(r, Dinit,fake);
+				if (t == -1) {
+					return -1;
+				}
+				if (t <= 0 && t>-0.1) {
+					return 0.00000001f;
+				}
 				if (t <= 0 && fake) {
-					System.err.println("Erreur 50650656fffffsdf0" + t + " " + r.getNom() + " " + Dinit);
+
+					System.err.println(getNom() + " Erreur 50650656jh0 " + t + " " + r.getNom() + " " + Dinit);
 					System.exit(0);
 				}
+
+				return t;
+			} else if (r.getSpeed() < r.getMaxSpeed()) {
+				
+				float t = frein(r, Dinit);
+				
+				if (t == -1) {
+					return -1;
+				}
+				if (t <= 0 && fake) {
+					System.err.println(getNom() + " Erreur 50650656fffffsdf0" + t + " " + r.getNom() + " " + Dinit);
+					System.exit(0);
+				}
+				
 				return t;
 			} else {
 				return -1;
@@ -351,13 +408,13 @@ public class Car {
 		float acc = 100.0f / (1.4f * 36.0f);
 
 		float TVmaxA = (getMaxSpeed() - getSpeed()) / acc;
-		
+
 		float TVmaxB = (getMaxSpeed() - r.getSpeed()) / acc;
-	
+
 		float XVmaxA = TVmaxA * (getMaxSpeed() + getSpeed()) / 2;
-		float XVmaxB = TVmaxB * (getMaxSpeed() + r.getSpeed()) / 2;
-		//System.out.println(getNom() + " XVmaxA " +XVmaxA );
-		//System.out.println(getNom() + " XVmaxB " +XVmaxB );
+		float XVmaxB = TVmaxB * (r.getMaxSpeed() + r.getSpeed()) / 2;
+		// System.out.println(getNom() + " XVmaxA " +XVmaxA );
+		// System.out.println(getNom() + " XVmaxB " +XVmaxB );
 		if (r.getSpeed() >= getSpeed()) {
 			if (r.getSpeed() == 0 && getSpeed() == 0) {
 				if (r.getCurrentReaction() < getCurrentReaction()) {
@@ -365,14 +422,16 @@ public class Car {
 				}
 
 			}
+			
 			return -1; // En gros la voiture de devant va plus vite donc on
 						// accélère jusqu'à atteindre la vitesse max et attendre
 						// un pochain évènement.
 		} else {
-			
-			float Dfinal = XVmaxB - XVmaxA;
-			//System.out.println("lkdjsqldkjqlksd " + Dfinal); 
+
+			float Dfinal = XVmaxB - XVmaxA - Dinit;
+			// System.out.println("lkdjsqldkjqlksd " + Dfinal);
 			if (Dfinal > 35.0f) {
+				
 				return -1; // Pareil on ne fait rien
 			} else {
 				return 0.000001f;
@@ -383,40 +442,86 @@ public class Car {
 
 	// cas ou la voiture de devant freine
 
-	private float aux1(Car r, float Dinit) {
-
+	private float aux1(Car r, float Dinit, boolean fake) {
+		
 		float desc = 100.0f / (36.0f);
 		float dFrB = r.getSpeed() * r.getSpeed() / (2 * desc);
 		float dFrA = getSpeed() * getSpeed() / (2 * desc);
-		return (Dinit + 1.0f + dFrB - dFrA) / getSpeed(); // apres voir avec plus 1
+		if (!isBreaking()) { // a opti
+			dFrA = getMaxSpeed() * getMaxSpeed() / (2 * desc);
+		}
+		float ddd=Dinit - 1.0f + dFrB - dFrA  - r.getLenght();
+		if (getNom().equals("v 22")) {
+			System.err.println(Dinit + " " +dFrA + " " +dFrB+ " "  + " " +ddd);
+		}
+		if (ddd > -0.1f && ddd<0) {
+			return 0.000001f;
+		}
+		if (ddd < -0.1f && fake) {
+			if (!isBreaking()) { 
+				return 0.000001f;// a opti
+			}
+			System.err.println(getNom() + " " +r.getNom() + " err tkjrdhtkjhj2dsdsdsdsgfgfgfg " + " " +Dinit + " " +dFrA + " " +dFrB+ " "  + " " +ddd);
+			System.exit(0);
+		}
+		float rep = timeD(ddd,false);
+		if (rep < -0.1f && fake) {
+			System.err.println(getNom() + " " +r.getNom() + " err tkjrdhtkjhj2dsdsdsds " + " " +Dinit + " " +dFrA + " " +dFrB+ " " +rep + " " +ddd);
+			System.exit(0);
+		}
+		
+		return rep; // apres voir avec
+															// plus 1
 
 	}
 
 	public float tBreaking(Car r, int plus, boolean acce, boolean fake) {
 		float ddd = 0;
-
 		
 		if (plus == 0) {
-			ddd = r.getdFromNode() - getdFromNode()- r.getLenght() / 2 - getLenght() / 2;
-		}  else {
+			ddd = r.getdFromNode() - getdFromNode() - r.getLenght() / 2 - getLenght() / 2;
+		} else {
 			ddd = getOnRoad().getLength() - getdFromNode() - r.getLenght() / 2 - getLenght() / 2;
 
 		}
-		
+
 		return colision(r, ddd, acce, fake);
 
 	}
 
 	public float tempsParcourue(float d) {
+		
 		float acc = 100.0f / (1.4f * 36.0f);
 		if (speed < maxSpeed) {
 			if (speed > 0) {
-				float deltaSQRT = (float) Math.sqrt(speed * speed + 4 * (acc) * d/2.0f); // disrimint
+				float deltaSQRT = (float) Math.sqrt(speed * speed + 4 * (acc) * d / 2.0f); // disrimint
+				if (deltaSQRT<0) {
+					
+					System.err.println(getNom() +  " err tkjrjdsdsgfgfgfg " + " " +deltaSQRT);
+					System.exit(0);
+					
+				}
 				return (-speed + deltaSQRT) / acc;
 			} else {
 				if (tempsMoyenReaction > currentReaction) {
+					if (d<-0.1) {
+						
+						
+						System.err.println(getNom() +  " err tkjrjsgfgfgfg " + " " +d);
+						System.exit(0);
+							
+						
+					}
 					return ((float) Math.sqrt(2.0f * d * (1 / acc))) + tempsMoyenReaction - currentReaction;
 				} else {
+					if (d<-0.1) {
+						
+						
+						System.err.println(getNom() +  " err tkjrjsgfgfgfg " + " " +d);
+						System.exit(0);
+							
+						
+					}
 					return ((float) Math.sqrt(2.0f * d * (1 / acc)));
 				}
 			}
@@ -439,25 +544,28 @@ public class Car {
 		if (speed < maxSpeed) {
 			float t = tempsAcc();
 			if (t <= deltaT) {
-				
-				if (speed==0) {
+
+				if (speed == 0) {
 					float[] rep = { dAcc(t) + getSpeed() * (deltaT - t), maxSpeed };
-					currentReaction+=deltaT;
+					currentReaction += deltaT;
 					return rep;
-				}else {
+				} else {
 					float[] rep = { dAcc(t) + getSpeed() * (deltaT - t), maxSpeed };
-					
+
 					return rep;
 				}
-				
+
 			} else {
+				if (vitesseAcc(deltaT)<speed) {
+					System.err.println("Err 333" + getNom() + " " + speed + " " + deltaT  + " " + vitesseAcc(deltaT) );
+					System.exit(0);
+				}
 				float[] rep = { dAcc(deltaT), vitesseAcc(deltaT) };
-				if (speed==0) {
-					currentReaction+=deltaT;
+				if (speed == 0) {
+					currentReaction += deltaT;
 				}
 				return rep;
 			}
-			
 
 		} else {
 			float[] rep = { getSpeed() * deltaT, maxSpeed };
@@ -493,6 +601,7 @@ public class Car {
 
 	public void startBreaking() {
 		isBreaking = true;
+		roule=true;
 	}
 
 	public void setPositionInitIntersection(int positionInitIntersection) {
@@ -523,7 +632,7 @@ public class Car {
 			onRoad = itineraire.first();
 
 			itineraire.goNext();
-			System.out.println("La voiture " + nom + " est rriv� � " + nomAvant + " va maitenant dans la route "
+			System.out.println("La voiture " + nom + " est arrivé à " + nomAvant + " va maitenant dans la route "
 					+ onRoad.getName());
 			dFromNode = 0;
 			return false;
@@ -621,7 +730,7 @@ public class Car {
 		return destroy;
 	}
 
-	public ArrayList<Car> voituresDevant(Map p) {
+	public ArrayList<Car> voituresDevant(Carte p) {
 		ArrayList<Car> cars = new ArrayList<Car>();
 
 		ArrayList<Car> others = getOnRoad().carsInRoad(p);
@@ -650,5 +759,21 @@ public class Car {
 
 	public Road getOnRoad() {
 		return onRoad;
+	}
+	public float calcAux(float d) {
+		float acce = 100.0f / (1.4f * 36.0f);
+		float desc = 100.0f / (36.0f);
+		float c = getSpeed()*getSpeed()/(2*desc) - d;
+		float a=acce*acce/(2.0F*desc)+acce/2.0f;
+		float b = acce*getSpeed()/desc + getSpeed();
+		float delta = b*b - 4*a*c;
+		if (delta<=0) {
+			System.err.println(getNom() + "delta neg");
+			System.exit(1);
+		}
+		float rep = (-b+(float) Math.sqrt(delta))/(2.0f*a);
+		
+		return rep;
+		
 	}
 }
