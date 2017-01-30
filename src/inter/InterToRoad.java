@@ -10,7 +10,5 @@ public class InterToRoad {
 	public InterToRoad() {
 		// TODO Auto-generated constructor stub
 	}
-	public boolean isTraffic() {
-		return false;
-	}
+
 }

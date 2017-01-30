@@ -20,7 +20,6 @@ public class Itineraire {
 	public Road first() {
 		return roads.get(0);
 	}
-	
 	public void goNext() {
 		roads.remove(0);
 		
